@@ -122,7 +122,7 @@
     </ol>
   </main>
 
-  <!-- Animation — isolated so any failure here cannot affect the click handler below -->
+  <!-- ═══ Animation — isolated so failures here cannot affect the click handler ═══ -->
   <script>
     (function () {
       var canvas   = document.getElementById('bang');
@@ -133,14 +133,14 @@
       function reveal() {
         if (revealed) return;
         revealed = true;
-        canvas.style.transition = 'opacity 0.9s ease';
+        canvas.style.transition = 'opacity 1s ease';
         canvas.style.opacity    = '0';
         mainEl.style.opacity    = '1';
-        setTimeout(function () { if (canvas.parentNode) canvas.remove(); }, 1000);
+        setTimeout(function () { if (canvas.parentNode) canvas.remove(); }, 1100);
       }
 
-      // Hard fallback — content is always visible after 4.5 s no matter what
-      setTimeout(reveal, 4500);
+      // Hard fallback — content always accessible after 22 s
+      setTimeout(reveal, 22000);
 
       window.addEventListener('load', function () {
         var W = window.innerWidth  || document.documentElement.clientWidth  || 800;
@@ -154,33 +154,116 @@
         var cx = W / 2;
         var cy = H / 2;
 
-        // — Particles —
-        var particles = [];
+        // ── State ──────────────────────────────────────────────────────────────
+        var BUILDING  = 0;
+        var AFTERMATH = 1;
+        var stage     = BUILDING;
 
-        function Particle() {
-          var angle  = Math.random() * Math.PI * 2;
-          var speed  = Math.pow(Math.random(), 0.45) * 9 + 0.4;
-          this.x     = cx;  this.y  = cy;
-          this.px    = cx;  this.py = cy;
-          this.vx    = Math.cos(angle) * speed;
-          this.vy    = Math.sin(angle) * speed;
-          this.r     = 242 + Math.floor(Math.random() * 13);
-          this.g     = 220 + Math.floor(Math.random() * 28);
-          this.b     = 175 + Math.floor(Math.random() * 60);
-          this.size  = 0.6  + Math.random() * 2.8;
-          this.life  = 0.65 + Math.random() * 0.35;
-          this.decay = 0.004 + Math.random() * 0.013;
+        var buildF    = 0;
+        var BUILD_END = 225;   // ~3.75 s at 60 fps
+
+        var frame      = 0;   // global counter — dust particles read this via closure
+        var flashAlpha = 0;
+
+        var burstParticles = [];
+        var dustParticles  = [];
+
+        // ── Stage 1: building ball ─────────────────────────────────────────────
+        function drawBall() {
+          var t = buildF / BUILD_END;             // 0 → 1
+
+          // Organic multi-harmonic pulse; amplitude and frequency grow with t
+          var pulse = t * (
+            0.50 * Math.sin(buildF * 0.09) +
+            0.30 * Math.sin(buildF * 0.22) +
+            0.20 * Math.sin(buildF * 0.49)
+          );                                      // ≈ −1..1, scaled by t
+
+          var intensity = Math.pow(t, 0.42);     // builds quickly, plateaus
+
+          // Ball radius: ease-in growth, pulse breathes it in/out
+          var maxR  = Math.min(W, H) * 0.17;
+          var ballR = Math.max(0, maxR * (1 - Math.pow(1 - t, 2.4)) * (1 + 0.22 * pulse));
+
+          // ── Far atmospheric bloom ──
+          var bloomR = Math.max(W, H) * 0.65 * intensity * (1 + 0.28 * pulse);
+          if (bloomR > 2) {
+            try {
+              var bl = ctx.createRadialGradient(cx, cy, 0, cx, cy, bloomR);
+              bl.addColorStop(0,   'rgba(255,228,135,' + (intensity * 0.13) + ')');
+              bl.addColorStop(0.4, 'rgba(255,175,65,'  + (intensity * 0.06) + ')');
+              bl.addColorStop(1,   'rgba(255,140,40,0)');
+              ctx.fillStyle = bl;
+              ctx.fillRect(0, 0, W, H);
+            } catch (e) {}
+          }
+
+          // ── Near corona ──
+          var coronaR = ballR * 3.9 * (1 + 0.38 * pulse);
+          if (coronaR > 1) {
+            try {
+              var co = ctx.createRadialGradient(cx, cy, 0, cx, cy, coronaR);
+              co.addColorStop(0,    'rgba(255,255,228,' + Math.min(1, intensity * 0.78) + ')');
+              co.addColorStop(0.35, 'rgba(255,198,105,' + (intensity * 0.42) + ')');
+              co.addColorStop(1,    'rgba(255,148,48,0)');
+              ctx.fillStyle = co;
+              ctx.fillRect(0, 0, W, H);
+            } catch (e) {}
+          }
+
+          // ── Ball body ──
+          if (ballR > 1) {
+            try {
+              var bd = ctx.createRadialGradient(cx, cy, 0, cx, cy, ballR);
+              bd.addColorStop(0,    'rgba(255,255,255,' + Math.min(1, intensity * 1.18) + ')');
+              bd.addColorStop(0.45, 'rgba(255,248,218,' + Math.min(1, intensity * 0.92) + ')');
+              bd.addColorStop(0.82, 'rgba(255,208,115,' + (intensity * 0.66) + ')');
+              bd.addColorStop(1,    'rgba(255,172,68,'  + (intensity * 0.10) + ')');
+              ctx.fillStyle = bd;
+              ctx.fillRect(0, 0, W, H);
+            } catch (e) {}
+          }
+
+          // ── Bright erupting core ──
+          var coreR = ballR * 0.36 * (1 + 0.20 * pulse);
+          if (coreR > 0.5) {
+            try {
+              var cr = ctx.createRadialGradient(cx, cy, 0, cx, cy, coreR);
+              cr.addColorStop(0, 'rgba(255,255,255,' + Math.min(1, intensity * 1.45) + ')');
+              cr.addColorStop(1, 'rgba(255,255,242,' + (intensity * 0.48) + ')');
+              ctx.fillStyle = cr;
+              ctx.fillRect(0, 0, W, H);
+            } catch (e) {}
+          }
         }
 
-        Particle.prototype.step = function () {
-          this.px = this.x;  this.py = this.y;
-          this.vy += 0.018;
-          this.x  += this.vx;
-          this.y  += this.vy;
+        // ── Burst particles (fast streaks) ────────────────────────────────────
+        function BurstParticle() {
+          var angle  = Math.random() * Math.PI * 2;
+          var speed  = Math.pow(Math.random(), 0.36) * 12 + 0.5;
+          var spread = Math.min(W, H) * 0.018;
+          this.x  = cx + (Math.random() - 0.5) * spread;
+          this.y  = cy + (Math.random() - 0.5) * spread;
+          this.px = this.x;
+          this.py = this.y;
+          this.vx   = Math.cos(angle) * speed;
+          this.vy   = Math.sin(angle) * speed;
+          this.r    = 244 + Math.floor(Math.random() * 11);
+          this.g    = 222 + Math.floor(Math.random() * 28);
+          this.b    = 178 + Math.floor(Math.random() * 62);
+          this.size = 0.5 + Math.random() * 2.5;
+          this.life = 0.7 + Math.random() * 0.3;
+          this.decay = 0.009 + Math.random() * 0.015;
+        }
+
+        BurstParticle.prototype.step = function () {
+          this.px  = this.x;   this.py  = this.y;
+          this.vy += 0.016;
+          this.x  += this.vx;  this.y   += this.vy;
           this.life -= this.decay;
         };
 
-        Particle.prototype.draw = function () {
+        BurstParticle.prototype.draw = function () {
           var a = Math.max(0, this.life);
           ctx.strokeStyle = 'rgba(' + this.r + ',' + this.g + ',' + this.b + ',' + a + ')';
           ctx.lineWidth   = this.size * Math.sqrt(a);
@@ -190,34 +273,93 @@
           ctx.stroke();
         };
 
-        for (var i = 0; i < 240; i++) { particles.push(new Particle()); }
+        // ── Dust particles (slow drifting points) ────────────────────────────
+        function DustParticle() {
+          var angle  = Math.random() * Math.PI * 2;
+          var dist   = Math.sqrt(Math.random()) * Math.max(W, H) * 0.55;
+          this.x     = cx + Math.cos(angle) * dist;
+          this.y     = cy + Math.sin(angle) * dist;
+          var dAngle = Math.random() * Math.PI * 2;
+          var speed  = 0.08 + Math.random() * 0.62;
+          this.vx    = Math.cos(dAngle) * speed;
+          this.vy    = Math.sin(dAngle) * speed;
+          this.rad   = 0.7 + Math.random() * 1.9;
+          this.r     = 238 + Math.floor(Math.random() * 17);
+          this.g     = 210 + Math.floor(Math.random() * 38);
+          this.b     = 162 + Math.floor(Math.random() * 78);
+          this.life  = 0.35 + Math.random() * 0.65;
+          this.decay = 0.002 + Math.random() * 0.004;
+          this.phase   = Math.random() * Math.PI * 2;
+          this.twinkle = Math.random() < 0.45;
+        }
 
-        // — Flash —
-        var flashAlpha = 1.0;
+        DustParticle.prototype.step = function () {
+          this.vy  += 0.002;
+          this.x   += this.vx;
+          this.y   += this.vy;
+          this.life -= this.decay;
+        };
 
+        DustParticle.prototype.draw = function () {
+          var base = Math.max(0, this.life);
+          var a    = this.twinkle
+            ? base * (0.55 + 0.45 * Math.abs(Math.sin(frame * 0.06 + this.phase)))
+            : base;
+          ctx.fillStyle = 'rgba(' + this.r + ',' + this.g + ',' + this.b + ',' + a + ')';
+          ctx.beginPath();
+          ctx.arc(this.x, this.y, this.rad * Math.sqrt(base), 0, Math.PI * 2);
+          ctx.fill();
+        };
+
+        // ── Ignition: ball bursts ─────────────────────────────────────────────
+        function ignite() {
+          flashAlpha = 2.0;
+          for (var b = 0; b < 350; b++) burstParticles.push(new BurstParticle());
+          for (var d = 0; d < 230; d++) dustParticles.push(new DustParticle());
+          stage = AFTERMATH;
+        }
+
+        // ── Main loop ─────────────────────────────────────────────────────────
         function tick() {
           ctx.clearRect(0, 0, W, H);
 
-          if (flashAlpha > 0) {
-            try {
-              var rad  = Math.max(W, H) * 0.8;
-              var grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad);
-              grad.addColorStop(0,   'rgba(255,255,255,' + flashAlpha + ')');
-              grad.addColorStop(0.2, 'rgba(255,248,225,' + (flashAlpha * 0.85) + ')');
-              grad.addColorStop(1,   'rgba(255,240,200,0)');
-              ctx.fillStyle = grad;
-              ctx.fillRect(0, 0, W, H);
-            } catch (e) { flashAlpha = 0; }
-            flashAlpha -= 0.04;
+          if (stage === BUILDING) {
+            drawBall();
+            buildF++;
+            if (buildF >= BUILD_END) ignite();
+
+          } else {
+            // Radial flash bloom
+            if (flashAlpha > 0) {
+              var fa = Math.min(1, flashAlpha);
+              try {
+                var frad = Math.max(W, H) * 0.85;
+                var fg   = ctx.createRadialGradient(cx, cy, 0, cx, cy, frad);
+                fg.addColorStop(0,    'rgba(255,255,255,' + fa + ')');
+                fg.addColorStop(0.25, 'rgba(255,250,222,' + (fa * 0.88) + ')');
+                fg.addColorStop(1,    'rgba(255,240,200,0)');
+                ctx.fillStyle = fg;
+                ctx.fillRect(0, 0, W, H);
+              } catch (e) {}
+              flashAlpha -= 0.036;
+            }
+
+            var anyBurst = false;
+            for (var i = 0; i < burstParticles.length; i++) {
+              var p = burstParticles[i];
+              if (p.life > 0) { anyBurst = true; p.step(); p.draw(); }
+            }
+
+            var anyDust = false;
+            for (var j = 0; j < dustParticles.length; j++) {
+              var d = dustParticles[j];
+              if (d.life > 0) { anyDust = true; d.step(); d.draw(); }
+            }
+
+            if (!anyBurst && !anyDust && flashAlpha <= 0) { reveal(); return; }
           }
 
-          var alive = false;
-          for (var j = 0; j < particles.length; j++) {
-            var p = particles[j];
-            if (p.life > 0) { alive = true; p.step(); p.draw(); }
-          }
-
-          if (!alive && flashAlpha <= 0) { reveal(); return; }
+          frame++;
           requestAnimationFrame(tick);
         }
 
