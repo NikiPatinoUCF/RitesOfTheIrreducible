@@ -49,7 +49,35 @@
       font-weight: normal;
       letter-spacing: 0.18em;
       text-transform: uppercase;
-      margin-bottom: 4rem;
+      margin-bottom: 2rem;
+      cursor: pointer;
+    }
+
+    h1:hover {
+      opacity: 0.75;
+    }
+
+    .synopsis {
+      max-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      transition: max-height 0.6s ease, opacity 0.6s ease;
+      margin-bottom: 0;
+    }
+
+    .synopsis.open {
+      max-height: 20rem;
+      opacity: 1;
+      margin-bottom: 2.5rem;
+    }
+
+    .synopsis p {
+      font-size: clamp(0.78rem, 1.8vw, 0.9rem);
+      font-style: italic;
+      line-height: 1.85;
+      color: #a09890;
+      max-width: 38ch;
+      margin: 0 auto;
     }
 
     ol {
@@ -83,7 +111,10 @@
 <body>
   <canvas id="bang"></canvas>
   <main>
-    <h1>Rites of the Irreducible</h1>
+    <h1 id="title">Rites of the Irreducible</h1>
+    <div class="synopsis" id="synopsis">
+      <p>Three movements through the aftermath of a single event that cannot be named directly. The first attempts to index it — the mind's instrument of control applied to what resists control. The second enters the body — words spoken and unretractable, words withheld and perhaps recoverable, all of it cast into water and watched. The third arrives at the question neither movement could answer: whether forgiveness is a process or a grace, and whether mercy can be made or only received.</p>
+    </div>
     <ol>
       <li><span class="numeral">I.</span><a href="twine.html">The Index</a></li>
       <li><span class="numeral">II.</span><a href="fisher.html">The Casting Out</a></li>
@@ -91,16 +122,32 @@
     </ol>
   </main>
 
+  <!-- Animation — isolated so any failure here cannot affect the click handler below -->
   <script>
     (function () {
-      var canvas = document.getElementById('bang');
-      var ctx    = canvas.getContext('2d');
-      var main   = document.querySelector('main');
+      var canvas   = document.getElementById('bang');
+      var ctx      = canvas.getContext('2d');
+      var mainEl   = document.querySelector('main');
+      var revealed = false;
 
-      // Defer to first paint so canvas has laid out and dimensions are reliable
-      requestAnimationFrame(function () {
-        var W  = canvas.offsetWidth  || window.innerWidth  || 800;
-        var H  = canvas.offsetHeight || window.innerHeight || 600;
+      function reveal() {
+        if (revealed) return;
+        revealed = true;
+        canvas.style.transition = 'opacity 0.9s ease';
+        canvas.style.opacity    = '0';
+        mainEl.style.opacity    = '1';
+        setTimeout(function () { if (canvas.parentNode) canvas.remove(); }, 1000);
+      }
+
+      // Hard fallback — content is always visible after 4.5 s no matter what
+      setTimeout(reveal, 4500);
+
+      window.addEventListener('load', function () {
+        var W = window.innerWidth  || document.documentElement.clientWidth  || 800;
+        var H = window.innerHeight || document.documentElement.clientHeight || 600;
+
+        if (W < 10 || H < 10) { reveal(); return; }
+
         canvas.width  = W;
         canvas.height = H;
 
@@ -108,29 +155,25 @@
         var cy = H / 2;
 
         // — Particles —
-        var COUNT     = 240;
         var particles = [];
 
         function Particle() {
-          var angle = Math.random() * Math.PI * 2;
-          var speed = Math.pow(Math.random(), 0.45) * 9 + 0.4;
-          this.x    = cx;
-          this.y    = cy;
-          this.px   = cx;
-          this.py   = cy;
-          this.vx   = Math.cos(angle) * speed;
-          this.vy   = Math.sin(angle) * speed;
-          this.r    = 242 + Math.floor(Math.random() * 13);
-          this.g    = 220 + Math.floor(Math.random() * 28);
-          this.b    = 175 + Math.floor(Math.random() * 60);
-          this.size = 0.6 + Math.random() * 2.8;
-          this.life = 0.65 + Math.random() * 0.35;
+          var angle  = Math.random() * Math.PI * 2;
+          var speed  = Math.pow(Math.random(), 0.45) * 9 + 0.4;
+          this.x     = cx;  this.y  = cy;
+          this.px    = cx;  this.py = cy;
+          this.vx    = Math.cos(angle) * speed;
+          this.vy    = Math.sin(angle) * speed;
+          this.r     = 242 + Math.floor(Math.random() * 13);
+          this.g     = 220 + Math.floor(Math.random() * 28);
+          this.b     = 175 + Math.floor(Math.random() * 60);
+          this.size  = 0.6  + Math.random() * 2.8;
+          this.life  = 0.65 + Math.random() * 0.35;
           this.decay = 0.004 + Math.random() * 0.013;
         }
 
         Particle.prototype.step = function () {
-          this.px  = this.x;
-          this.py  = this.y;
+          this.px = this.x;  this.py = this.y;
           this.vy += 0.018;
           this.x  += this.vx;
           this.y  += this.vy;
@@ -147,44 +190,34 @@
           ctx.stroke();
         };
 
-        for (var i = 0; i < COUNT; i++) { particles.push(new Particle()); }
+        for (var i = 0; i < 240; i++) { particles.push(new Particle()); }
 
         // — Flash —
         var flashAlpha = 1.0;
-        var FLASH_DECAY = 0.04;
 
         function tick() {
           ctx.clearRect(0, 0, W, H);
 
           if (flashAlpha > 0) {
-            var rad  = Math.max(W, H) * 0.8;
-            var grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad);
-            grad.addColorStop(0,    'rgba(255,255,255,' + flashAlpha + ')');
-            grad.addColorStop(0.2,  'rgba(255,248,225,' + (flashAlpha * 0.85) + ')');
-            grad.addColorStop(1,    'rgba(255,240,200,0)');
-            ctx.fillStyle = grad;
-            ctx.fillRect(0, 0, W, H);
-            flashAlpha -= FLASH_DECAY;
+            try {
+              var rad  = Math.max(W, H) * 0.8;
+              var grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad);
+              grad.addColorStop(0,   'rgba(255,255,255,' + flashAlpha + ')');
+              grad.addColorStop(0.2, 'rgba(255,248,225,' + (flashAlpha * 0.85) + ')');
+              grad.addColorStop(1,   'rgba(255,240,200,0)');
+              ctx.fillStyle = grad;
+              ctx.fillRect(0, 0, W, H);
+            } catch (e) { flashAlpha = 0; }
+            flashAlpha -= 0.04;
           }
 
           var alive = false;
           for (var j = 0; j < particles.length; j++) {
             var p = particles[j];
-            if (p.life > 0) {
-              alive = true;
-              p.step();
-              p.draw();
-            }
+            if (p.life > 0) { alive = true; p.step(); p.draw(); }
           }
 
-          if (!alive && flashAlpha <= 0) {
-            canvas.style.transition = 'opacity 0.9s ease';
-            canvas.style.opacity    = '0';
-            main.style.opacity      = '1';
-            setTimeout(function () { canvas.remove(); }, 1000);
-            return;
-          }
-
+          if (!alive && flashAlpha <= 0) { reveal(); return; }
           requestAnimationFrame(tick);
         }
 
@@ -192,6 +225,13 @@
       });
 
     }());
+  </script>
+
+  <!-- Title toggle — standalone, cannot be broken by animation errors -->
+  <script>
+    document.getElementById('title').addEventListener('click', function () {
+      document.getElementById('synopsis').classList.toggle('open');
+    });
   </script>
 </body>
 </html>
