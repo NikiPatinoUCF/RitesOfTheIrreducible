@@ -122,16 +122,32 @@
     </ol>
   </main>
 
+  <!-- Animation — isolated so any failure here cannot affect the click handler below -->
   <script>
     (function () {
-      var canvas = document.getElementById('bang');
-      var ctx    = canvas.getContext('2d');
-      var main   = document.querySelector('main');
+      var canvas   = document.getElementById('bang');
+      var ctx      = canvas.getContext('2d');
+      var mainEl   = document.querySelector('main');
+      var revealed = false;
 
-      // Defer to first paint so canvas has laid out and dimensions are reliable
-      requestAnimationFrame(function () {
-        var W  = canvas.offsetWidth  || window.innerWidth  || 800;
-        var H  = canvas.offsetHeight || window.innerHeight || 600;
+      function reveal() {
+        if (revealed) return;
+        revealed = true;
+        canvas.style.transition = 'opacity 0.9s ease';
+        canvas.style.opacity    = '0';
+        mainEl.style.opacity    = '1';
+        setTimeout(function () { if (canvas.parentNode) canvas.remove(); }, 1000);
+      }
+
+      // Hard fallback — content is always visible after 4.5 s no matter what
+      setTimeout(reveal, 4500);
+
+      window.addEventListener('load', function () {
+        var W = window.innerWidth  || document.documentElement.clientWidth  || 800;
+        var H = window.innerHeight || document.documentElement.clientHeight || 600;
+
+        if (W < 10 || H < 10) { reveal(); return; }
+
         canvas.width  = W;
         canvas.height = H;
 
@@ -139,29 +155,25 @@
         var cy = H / 2;
 
         // — Particles —
-        var COUNT     = 240;
         var particles = [];
 
         function Particle() {
-          var angle = Math.random() * Math.PI * 2;
-          var speed = Math.pow(Math.random(), 0.45) * 9 + 0.4;
-          this.x    = cx;
-          this.y    = cy;
-          this.px   = cx;
-          this.py   = cy;
-          this.vx   = Math.cos(angle) * speed;
-          this.vy   = Math.sin(angle) * speed;
-          this.r    = 242 + Math.floor(Math.random() * 13);
-          this.g    = 220 + Math.floor(Math.random() * 28);
-          this.b    = 175 + Math.floor(Math.random() * 60);
-          this.size = 0.6 + Math.random() * 2.8;
-          this.life = 0.65 + Math.random() * 0.35;
+          var angle  = Math.random() * Math.PI * 2;
+          var speed  = Math.pow(Math.random(), 0.45) * 9 + 0.4;
+          this.x     = cx;  this.y  = cy;
+          this.px    = cx;  this.py = cy;
+          this.vx    = Math.cos(angle) * speed;
+          this.vy    = Math.sin(angle) * speed;
+          this.r     = 242 + Math.floor(Math.random() * 13);
+          this.g     = 220 + Math.floor(Math.random() * 28);
+          this.b     = 175 + Math.floor(Math.random() * 60);
+          this.size  = 0.6  + Math.random() * 2.8;
+          this.life  = 0.65 + Math.random() * 0.35;
           this.decay = 0.004 + Math.random() * 0.013;
         }
 
         Particle.prototype.step = function () {
-          this.px  = this.x;
-          this.py  = this.y;
+          this.px = this.x;  this.py = this.y;
           this.vy += 0.018;
           this.x  += this.vx;
           this.y  += this.vy;
@@ -178,55 +190,48 @@
           ctx.stroke();
         };
 
-        for (var i = 0; i < COUNT; i++) { particles.push(new Particle()); }
+        for (var i = 0; i < 240; i++) { particles.push(new Particle()); }
 
         // — Flash —
         var flashAlpha = 1.0;
-        var FLASH_DECAY = 0.04;
 
         function tick() {
           ctx.clearRect(0, 0, W, H);
 
           if (flashAlpha > 0) {
-            var rad  = Math.max(W, H) * 0.8;
-            var grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad);
-            grad.addColorStop(0,    'rgba(255,255,255,' + flashAlpha + ')');
-            grad.addColorStop(0.2,  'rgba(255,248,225,' + (flashAlpha * 0.85) + ')');
-            grad.addColorStop(1,    'rgba(255,240,200,0)');
-            ctx.fillStyle = grad;
-            ctx.fillRect(0, 0, W, H);
-            flashAlpha -= FLASH_DECAY;
+            try {
+              var rad  = Math.max(W, H) * 0.8;
+              var grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad);
+              grad.addColorStop(0,   'rgba(255,255,255,' + flashAlpha + ')');
+              grad.addColorStop(0.2, 'rgba(255,248,225,' + (flashAlpha * 0.85) + ')');
+              grad.addColorStop(1,   'rgba(255,240,200,0)');
+              ctx.fillStyle = grad;
+              ctx.fillRect(0, 0, W, H);
+            } catch (e) { flashAlpha = 0; }
+            flashAlpha -= 0.04;
           }
 
           var alive = false;
           for (var j = 0; j < particles.length; j++) {
             var p = particles[j];
-            if (p.life > 0) {
-              alive = true;
-              p.step();
-              p.draw();
-            }
+            if (p.life > 0) { alive = true; p.step(); p.draw(); }
           }
 
-          if (!alive && flashAlpha <= 0) {
-            canvas.style.transition = 'opacity 0.9s ease';
-            canvas.style.opacity    = '0';
-            main.style.opacity      = '1';
-            setTimeout(function () { canvas.remove(); }, 1000);
-            return;
-          }
-
+          if (!alive && flashAlpha <= 0) { reveal(); return; }
           requestAnimationFrame(tick);
         }
 
         requestAnimationFrame(tick);
       });
 
-      document.getElementById('title').addEventListener('click', function () {
-        document.getElementById('synopsis').classList.toggle('open');
-      });
-
     }());
+  </script>
+
+  <!-- Title toggle — standalone, cannot be broken by animation errors -->
+  <script>
+    document.getElementById('title').addEventListener('click', function () {
+      document.getElementById('synopsis').classList.toggle('open');
+    });
   </script>
 </body>
 </html>
