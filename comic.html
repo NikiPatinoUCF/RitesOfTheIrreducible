@@ -4,6 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>The Seeking Forgiveness</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IM+Fell+English:ital@0;1&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after {
       box-sizing: border-box;
@@ -12,23 +15,129 @@
     }
 
     html, body {
-      height: 100%;
+      min-height: 100%;
       background: #07080c;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
+      color: #d6cfc4;
+      font-family: 'IM Fell English', Georgia, serif;
     }
 
-    img {
-      max-width: 100vw;
-      max-height: 100vh;
-      object-fit: contain;
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 4rem 1.5rem;
+    }
+
+    #back {
+      position: fixed;
+      top: 1rem;
+      left: 1.5rem;
+      font-size: 0.75rem;
+      color: #d6cfc4;
+      text-decoration: none;
+      letter-spacing: 0.06em;
+      opacity: 0.5;
+      z-index: 10;
+      transition: opacity 0.3s;
+    }
+
+    #back:hover { opacity: 1; }
+
+    #grid {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      /* large row-gap during reveal; collapses on reflow */
+      gap: 2.5rem;
+      transition: gap 1.6s cubic-bezier(0.4, 0, 0.2, 1);
+      width: min(calc(100vw - 3rem), 1400px);
+    }
+
+    #grid.reflowed {
+      gap: 0.2rem;
+    }
+
+    .row {
+      display: flex;
+      width: 100%;
+      gap: 0.2rem;
+    }
+
+    .panel {
+      flex: 1 1 0;
+      min-width: 0;
+      height: auto;
       display: block;
+      opacity: 0;
+      transition: opacity 1s ease;
+    }
+
+    .panel.visible {
+      opacity: 1;
     }
   </style>
 </head>
 <body>
-  <img src="comic.jpg" alt="">
+
+  <a href="index.html" id="back">&#8592; Rites of the Irreducible</a>
+
+  <div id="grid">
+    <div class="row" id="row1">
+      <img class="panel" id="p1" src="panel%201.png" alt="">
+      <img class="panel" id="p2" src="panel%202.png" alt="">
+      <img class="panel" id="p3" src="panel%203.png" alt="">
+      <img class="panel" id="p4" src="panel%204.png" alt="">
+    </div>
+    <div class="row" id="row2">
+      <img class="panel" id="p5" src="panel%205.png" alt="">
+      <img class="panel" id="p6" src="panel%206.png" alt="">
+      <img class="panel" id="p7" src="panel%207.png" alt="">
+      <img class="panel" id="p8" src="panel%208.png" alt="">
+    </div>
+  </div>
+
+  <script>
+    // Timing (ms) — slow and deliberate
+    var STEP       = 2400;  // interval from one panel's fade-start to the next
+    var FADE       = 1000;  // fade-in duration — matches CSS 1s transition
+    var PAUSE_ROW  = 3000;  // linger on completed row before continuing
+    var PAUSE_GRID = 3000;  // linger on all eight before reflow
+    var START      = 800;   // initial delay before p1
+
+    // Build absolute timestamps for each panel
+    var t = START;
+    var times = [];
+
+    for (var i = 0; i < 4; i++) {       // row 1: panels 1–4
+      times.push(t);
+      t += STEP;
+    }
+
+    // p4 finishes fading at times[3]+FADE; hold that, then start row 2
+    t = times[3] + FADE + PAUSE_ROW;
+
+    for (var i = 0; i < 4; i++) {       // row 2: panels 5–8
+      times.push(t);
+      t += STEP;
+    }
+
+    // p8 finishes fading at times[7]+FADE; hold all eight, then reflow
+    var reflowAt = times[7] + FADE + PAUSE_GRID;
+
+    var ids = ['p1','p2','p3','p4','p5','p6','p7','p8'];
+
+    ids.forEach(function (id, i) {
+      setTimeout(function () {
+        document.getElementById(id).classList.add('visible');
+      }, times[i]);
+    });
+
+    setTimeout(function () {
+      document.getElementById('grid').classList.add('reflowed');
+    }, reflowAt);
+  </script>
+
 </body>
 </html>
