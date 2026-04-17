@@ -27,8 +27,20 @@
       justify-content: center;
     }
 
+    #bang {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 100;
+      pointer-events: none;
+    }
+
     main {
       text-align: center;
+      opacity: 0;
+      transition: opacity 1s ease;
     }
 
     h1 {
@@ -69,6 +81,7 @@
   </style>
 </head>
 <body>
+  <canvas id="bang"></canvas>
   <main>
     <h1>Rites of the Irreducible</h1>
     <ol>
@@ -77,5 +90,108 @@
       <li><span class="numeral">III.</span><a href="comic.html">The Seeking Forgiveness</a></li>
     </ol>
   </main>
+
+  <script>
+    (function () {
+      var canvas = document.getElementById('bang');
+      var ctx    = canvas.getContext('2d');
+      var main   = document.querySelector('main');
+
+      // Defer to first paint so canvas has laid out and dimensions are reliable
+      requestAnimationFrame(function () {
+        var W  = canvas.offsetWidth  || window.innerWidth  || 800;
+        var H  = canvas.offsetHeight || window.innerHeight || 600;
+        canvas.width  = W;
+        canvas.height = H;
+
+        var cx = W / 2;
+        var cy = H / 2;
+
+        // — Particles —
+        var COUNT     = 240;
+        var particles = [];
+
+        function Particle() {
+          var angle = Math.random() * Math.PI * 2;
+          var speed = Math.pow(Math.random(), 0.45) * 9 + 0.4;
+          this.x    = cx;
+          this.y    = cy;
+          this.px   = cx;
+          this.py   = cy;
+          this.vx   = Math.cos(angle) * speed;
+          this.vy   = Math.sin(angle) * speed;
+          this.r    = 242 + Math.floor(Math.random() * 13);
+          this.g    = 220 + Math.floor(Math.random() * 28);
+          this.b    = 175 + Math.floor(Math.random() * 60);
+          this.size = 0.6 + Math.random() * 2.8;
+          this.life = 0.65 + Math.random() * 0.35;
+          this.decay = 0.004 + Math.random() * 0.013;
+        }
+
+        Particle.prototype.step = function () {
+          this.px  = this.x;
+          this.py  = this.y;
+          this.vy += 0.018;
+          this.x  += this.vx;
+          this.y  += this.vy;
+          this.life -= this.decay;
+        };
+
+        Particle.prototype.draw = function () {
+          var a = Math.max(0, this.life);
+          ctx.strokeStyle = 'rgba(' + this.r + ',' + this.g + ',' + this.b + ',' + a + ')';
+          ctx.lineWidth   = this.size * Math.sqrt(a);
+          ctx.beginPath();
+          ctx.moveTo(this.px, this.py);
+          ctx.lineTo(this.x,  this.y);
+          ctx.stroke();
+        };
+
+        for (var i = 0; i < COUNT; i++) { particles.push(new Particle()); }
+
+        // — Flash —
+        var flashAlpha = 1.0;
+        var FLASH_DECAY = 0.04;
+
+        function tick() {
+          ctx.clearRect(0, 0, W, H);
+
+          if (flashAlpha > 0) {
+            var rad  = Math.max(W, H) * 0.8;
+            var grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, rad);
+            grad.addColorStop(0,    'rgba(255,255,255,' + flashAlpha + ')');
+            grad.addColorStop(0.2,  'rgba(255,248,225,' + (flashAlpha * 0.85) + ')');
+            grad.addColorStop(1,    'rgba(255,240,200,0)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, W, H);
+            flashAlpha -= FLASH_DECAY;
+          }
+
+          var alive = false;
+          for (var j = 0; j < particles.length; j++) {
+            var p = particles[j];
+            if (p.life > 0) {
+              alive = true;
+              p.step();
+              p.draw();
+            }
+          }
+
+          if (!alive && flashAlpha <= 0) {
+            canvas.style.transition = 'opacity 0.9s ease';
+            canvas.style.opacity    = '0';
+            main.style.opacity      = '1';
+            setTimeout(function () { canvas.remove(); }, 1000);
+            return;
+          }
+
+          requestAnimationFrame(tick);
+        }
+
+        requestAnimationFrame(tick);
+      });
+
+    }());
+  </script>
 </body>
 </html>
