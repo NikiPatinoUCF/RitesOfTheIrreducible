@@ -49,10 +49,9 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      /* large row-gap during reveal; collapses on reflow */
-      gap: 2.5rem;
-      transition: gap 1.6s cubic-bezier(0.4, 0, 0.2, 1);
       width: min(calc(100vw - 3rem), 1400px);
+      gap: 2.5rem;
+      transition: gap 1.8s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     #grid.reflowed {
@@ -65,13 +64,24 @@
       gap: 0.2rem;
     }
 
+    /* Row 2 is hidden (no space) until act 2 begins */
+    #row2 {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 1.2s ease;
+    }
+
+    #row2.open {
+      max-height: 1000px;
+    }
+
     .panel {
       flex: 1 1 0;
       min-width: 0;
       height: auto;
       display: block;
       opacity: 0;
-      transition: opacity 1s ease;
+      transition: opacity 1.2s ease;
     }
 
     .panel.visible {
@@ -99,44 +109,30 @@
   </div>
 
   <script>
-    // Timing (ms) — slow and deliberate
-    var STEP       = 2400;  // interval from one panel's fade-start to the next
-    var FADE       = 1000;  // fade-in duration — matches CSS 1s transition
-    var PAUSE_ROW  = 3000;  // linger on completed row before continuing
-    var PAUSE_GRID = 3000;  // linger on all eight before reflow
-    var START      = 800;   // initial delay before p1
-
-    // Build absolute timestamps for each panel
-    var t = START;
-    var times = [];
-
-    for (var i = 0; i < 4; i++) {       // row 1: panels 1–4
-      times.push(t);
-      t += STEP;
-    }
-
-    // p4 finishes fading at times[3]+FADE; hold that, then start row 2
-    t = times[3] + FADE + PAUSE_ROW;
-
-    for (var i = 0; i < 4; i++) {       // row 2: panels 5–8
-      times.push(t);
-      t += STEP;
-    }
-
-    // p8 finishes fading at times[7]+FADE; hold all eight, then reflow
-    var reflowAt = times[7] + FADE + PAUSE_GRID;
+    var FADE       = 1200;  // ms — panel fade-in; matches CSS transition
+    var HOLD       = 5000;  // ms — visible pause before next panel appears
+    var STEP       = FADE + HOLD;          // 6200ms per panel
+    var PAUSE_END  = 3000;  // ms — hold all 8 before reflow
 
     var ids = ['p1','p2','p3','p4','p5','p6','p7','p8'];
 
     ids.forEach(function (id, i) {
+      // Open row 2 just before panel 5 fades in so it has room to show
+      if (i === 4) {
+        setTimeout(function () {
+          document.getElementById('row2').classList.add('open');
+        }, i * STEP - 400);
+      }
+
       setTimeout(function () {
         document.getElementById(id).classList.add('visible');
-      }, times[i]);
+      }, i * STEP);
     });
 
+    // Reflow: after p8 finishes fading + 3s final hold
     setTimeout(function () {
       document.getElementById('grid').classList.add('reflowed');
-    }, reflowAt);
+    }, 7 * STEP + FADE + PAUSE_END);
   </script>
 
 </body>
