@@ -49,7 +49,35 @@
       font-weight: normal;
       letter-spacing: 0.18em;
       text-transform: uppercase;
-      margin-bottom: 4rem;
+      margin-bottom: 2rem;
+      cursor: pointer;
+    }
+
+    h1:hover {
+      opacity: 0.75;
+    }
+
+    .synopsis {
+      max-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      transition: max-height 0.6s ease, opacity 0.6s ease;
+      margin-bottom: 0;
+    }
+
+    .synopsis.open {
+      max-height: 20rem;
+      opacity: 1;
+      margin-bottom: 2.5rem;
+    }
+
+    .synopsis p {
+      font-size: clamp(0.78rem, 1.8vw, 0.9rem);
+      font-style: italic;
+      line-height: 1.85;
+      color: #a09890;
+      max-width: 38ch;
+      margin: 0 auto;
     }
 
     ol {
@@ -83,7 +111,10 @@
 <body>
   <canvas id="bang"></canvas>
   <main>
-    <h1>Rites of the Irreducible</h1>
+    <h1 id="title">Rites of the Irreducible</h1>
+    <div class="synopsis" id="synopsis">
+      <p>Three movements through the aftermath of a single event that cannot be named directly. The first attempts to index it — the mind's instrument of control applied to what resists control. The second enters the body — words spoken and unretractable, words withheld and perhaps recoverable, all of it cast into water and watched. The third arrives at the question neither movement could answer: whether forgiveness is a process or a grace, and whether mercy can be made or only received.</p>
+    </div>
     <ol>
       <li><span class="numeral">I.</span><a href="twine.html">The Index</a></li>
       <li><span class="numeral">II.</span><a href="fisher.html">The Casting Out</a></li>
@@ -189,6 +220,10 @@
         }
 
         requestAnimationFrame(tick);
+      });
+
+      document.getElementById('title').addEventListener('click', function () {
+        document.getElementById('synopsis').classList.toggle('open');
       });
 
     }());
