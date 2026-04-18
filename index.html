@@ -182,15 +182,18 @@
       function reveal() {
         if (revealed) return;
         revealed = true;
-        sessionStorage.setItem('bangPlayed', '1');
         canvas.style.transition = 'opacity 1s ease';
         canvas.style.opacity    = '0';
         mainEl.style.opacity    = '1';
         setTimeout(function () { if (canvas.parentNode) canvas.remove(); }, 1100);
       }
 
-      // Skip animation if already played this session
-      if (sessionStorage.getItem('bangPlayed')) { reveal(); return; }
+      // Skip animation when navigating back from a piece within the site
+      try {
+        if (document.referrer && new URL(document.referrer).origin === location.origin) {
+          reveal(); return;
+        }
+      } catch (e) {}
 
       // Hard fallback — content always accessible after 22 s
       setTimeout(reveal, 22000);
