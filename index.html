@@ -52,44 +52,79 @@
       font-weight: normal;
       letter-spacing: 0.18em;
       text-transform: uppercase;
-      margin-bottom: 2rem;
+      margin-bottom: 1.5rem;
+    }
+
+    #irreducible-word {
       cursor: pointer;
+      text-decoration: underline;
+      text-decoration-color: rgba(214, 207, 196, 0.25);
+      text-underline-offset: 0.18em;
+      transition: opacity 0.3s, text-decoration-color 0.3s;
     }
 
-    h1:hover {
+    #irreducible-word:hover {
       opacity: 0.75;
+      text-decoration-color: rgba(214, 207, 196, 0.55);
     }
 
-    .synopsis {
+    #dict-entry {
       max-height: 0;
       overflow: hidden;
       opacity: 0;
-      transition: max-height 0.8s ease, opacity 0.8s ease;
+      transition: max-height 0.7s ease, opacity 0.7s ease;
       margin-bottom: 0;
     }
 
-    .synopsis.open {
-      max-height: 20rem;
+    #dict-entry.open {
+      max-height: 10rem;
       opacity: 1;
       margin-bottom: 2.5rem;
     }
 
-    .synopsis p {
-      font-size: clamp(1rem, 2.4vw, 1.25rem);
-      font-style: italic;
-      line-height: 1.9;
-      color: #a09890;
-      max-width: 44ch;
-      margin: 0 auto 1.1em;
-    }
-
-    .synopsis p:last-child {
-      margin-bottom: 0;
-    }
-
-    .synopsis .label {
+    .dict-head {
+      font-size: clamp(0.8rem, 1.8vw, 0.92rem);
       color: #c8c0b4;
       font-style: normal;
+      letter-spacing: 0.04em;
+      margin-bottom: 0.4em;
+    }
+
+    .dict-phonetic {
+      font-style: italic;
+      color: #8a8278;
+    }
+
+    .dict-pos {
+      font-style: italic;
+      color: #8a8278;
+      font-size: 0.9em;
+      margin-left: 0.3em;
+    }
+
+    .dict-def {
+      font-size: clamp(0.8rem, 1.8vw, 0.92rem);
+      font-style: italic;
+      color: #8a8278;
+      line-height: 1.75;
+      max-width: 38ch;
+      margin: 0 auto;
+    }
+
+    #movement-def {
+      margin-top: 2rem;
+      font-size: clamp(0.85rem, 1.9vw, 1rem);
+      font-style: italic;
+      color: #8a8278;
+      max-width: 40ch;
+      line-height: 1.8;
+      min-height: 2.8em;
+      opacity: 0;
+      transition: opacity 0.4s ease;
+    }
+
+    #movement-def.visible {
+      opacity: 1;
     }
 
     ol {
@@ -123,15 +158,17 @@
 <body>
   <canvas id="bang"></canvas>
   <main>
-    <h1 id="title">Rites of the Irreducible</h1>
-    <div class="synopsis" id="synopsis">
-      <p>What machines cannot do with guilt, grief, the unsayable, the unrecoverable. <span class="label">The Index</span> sorts trauma as data — the mind categorizing what resists categorization, structure performing its own failure. <span class="label">The Casting Out</span> moves into the body — language cast into water, grief enacted rather than processed. <span class="label">The Seeking Forgiveness</span> names the limit: mercy is not optimization; the irreducible interior cannot be debugged.</p>
+    <h1>Rites of the <span id="irreducible-word">Irreducible</span></h1>
+    <div id="dict-entry">
+      <p class="dict-head">ir·re·duc·i·ble &nbsp;<span class="dict-phonetic">/ˌirəˈd(y)o͞osəb(ə)l/</span><span class="dict-pos">adjective</span></p>
+      <p class="dict-def">not able to be reduced, simplified, or processed into a smaller form; resisting categorization, optimization, or repair.</p>
     </div>
     <ol>
-      <li><span class="numeral">I.</span><a href="twine.html">The Index</a></li>
-      <li><span class="numeral">II.</span><a href="fisher.html">The Casting Out</a></li>
-      <li><span class="numeral">III.</span><a href="comic.html">The Seeking Forgiveness</a></li>
+      <li><span class="numeral">I.</span><a href="twine.html" id="link-index">The Index</a></li>
+      <li><span class="numeral">II.</span><a href="fisher.html" id="link-casting">The Casting Out</a></li>
+      <li><span class="numeral">III.</span><a href="comic.html" id="link-forgiveness">The Seeking Forgiveness</a></li>
     </ol>
+    <p id="movement-def"></p>
   </main>
 
   <!-- ═══ Animation — isolated so failures here cannot affect the click handler ═══ -->
@@ -385,10 +422,30 @@
     }());
   </script>
 
-  <!-- Title toggle — standalone, cannot be broken by animation errors -->
+  <!-- Interactions — standalone, cannot be broken by animation errors -->
   <script>
-    document.getElementById('title').addEventListener('click', function () {
-      document.getElementById('synopsis').classList.toggle('open');
+    document.getElementById('irreducible-word').addEventListener('click', function () {
+      document.getElementById('dict-entry').classList.toggle('open');
+    });
+
+    var movDef = document.getElementById('movement-def');
+    var movDefs = {
+      'link-index':      'The mind categorizing what resists categorization — structure performing its own failure.',
+      'link-casting':    'Language cast into water, grief enacted rather than processed — the body releasing what it carried.',
+      'link-forgiveness':'Mercy is not optimization. The irreducible interior cannot be debugged.'
+    };
+    var hideTimer;
+
+    Object.keys(movDefs).forEach(function (id) {
+      var el = document.getElementById(id);
+      el.addEventListener('mouseenter', function () {
+        clearTimeout(hideTimer);
+        movDef.textContent = movDefs[id];
+        movDef.classList.add('visible');
+      });
+      el.addEventListener('mouseleave', function () {
+        hideTimer = setTimeout(function () { movDef.classList.remove('visible'); }, 250);
+      });
     });
   </script>
 </body>
