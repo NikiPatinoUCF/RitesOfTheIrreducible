@@ -66,10 +66,17 @@
     }
 
     .synopsis.open {
-      max-height: 60rem;
+      max-height: 45vh;
+      overflow-y: auto;
+      overflow-x: hidden;
       opacity: 1;
       margin-bottom: 2.5rem;
     }
+
+    /* Scrollbar styled to match the dark palette */
+    .synopsis::-webkit-scrollbar        { width: 3px; }
+    .synopsis::-webkit-scrollbar-track  { background: transparent; }
+    .synopsis::-webkit-scrollbar-thumb  { background: #302e28; border-radius: 2px; }
 
     .synopsis p {
       font-size: clamp(1rem, 2.4vw, 1.25rem);

@@ -64,7 +64,7 @@
       gap: 0.2rem;
     }
 
-    /* Row 2 is hidden (no space) until act 2 begins */
+    /* Row 2 hidden until act 2 */
     #row2 {
       max-height: 0;
       overflow: hidden;
@@ -74,6 +74,19 @@
     #row2.open {
       max-height: 1000px;
     }
+
+    /*
+      Act 2 display order: 8, 7, 6, 5 (left to right).
+      HTML source order is 5, 6, 7, 8 (the final correct order).
+      CSS `order` reverses the display during act 2.
+    */
+    #row2 #p8 { order: 1; }
+    #row2 #p7 { order: 2; }
+    #row2 #p6 { order: 3; }
+    #row2 #p5 { order: 4; }
+
+    /* Reflow step 1: snap back to source order (5, 6, 7, 8) */
+    #row2.reordered .panel { order: 0; }
 
     .panel {
       flex: 1 1 0;
@@ -100,6 +113,8 @@
       <img class="panel" id="p3" src="panel%203.png" alt="">
       <img class="panel" id="p4" src="panel%204.png" alt="">
     </div>
+    <!-- Source order 5–8 is the final correct left-to-right order.
+         CSS `order` reverses them during act 2. -->
     <div class="row" id="row2">
       <img class="panel" id="p5" src="panel%205.png" alt="">
       <img class="panel" id="p6" src="panel%206.png" alt="">
@@ -109,15 +124,16 @@
   </div>
 
   <script>
-    var FADE       = 1200;  // ms — panel fade-in; matches CSS transition
-    var HOLD       = 5000;  // ms — visible pause before next panel appears
-    var STEP       = FADE + HOLD;          // 6200ms per panel
-    var PAUSE_END  = 3000;  // ms — hold all 8 before reflow
+    var FADE      = 1200;            // ms — matches CSS transition
+    var HOLD      = 5000;            // ms — pause while panel(s) are fully visible
+    var STEP      = FADE + HOLD;     // 6200 ms between fade-starts
+    var PAUSE_END = 3000;            // ms — hold all 8 before reflow
 
-    var ids = ['p1','p2','p3','p4','p5','p6','p7','p8'];
+    // Act 2 fades in reverse: 8 → 7 → 6 → 5
+    var ids = ['p1','p2','p3','p4','p8','p7','p6','p5'];
 
     ids.forEach(function (id, i) {
-      // Open row 2 just before panel 5 fades in so it has room to show
+      // Open row 2 just before p8 (i===4) begins fading
       if (i === 4) {
         setTimeout(function () {
           document.getElementById('row2').classList.add('open');
@@ -129,10 +145,18 @@
       }, i * STEP);
     });
 
-    // Reflow: after p8 finishes fading + 3s final hold
+    // Reflow: two-step
+    //   Step 1 — snap row 2 to correct order (5,6,7,8)
+    //   Step 2 — close the row gap (600 ms later, so snap is visible first)
+    var reorderAt = 7 * STEP + FADE + PAUSE_END;
+
+    setTimeout(function () {
+      document.getElementById('row2').classList.add('reordered');
+    }, reorderAt);
+
     setTimeout(function () {
       document.getElementById('grid').classList.add('reflowed');
-    }, 7 * STEP + FADE + PAUSE_END);
+    }, reorderAt + 600);
   </script>
 
 </body>
