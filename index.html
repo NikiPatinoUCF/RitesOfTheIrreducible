@@ -44,7 +44,7 @@
     }
 
     h1 {
-      font-size: clamp(1.1rem, 3vw, 1.6rem);
+      font-size: clamp(1.8rem, 5vw, 3.2rem);
       font-style: italic;
       font-weight: normal;
       letter-spacing: 0.18em;
@@ -61,12 +61,12 @@
       max-height: 0;
       overflow: hidden;
       opacity: 0;
-      transition: max-height 0.6s ease, opacity 0.6s ease;
+      transition: max-height 0.8s ease, opacity 0.8s ease;
       margin-bottom: 0;
     }
 
     .synopsis.open {
-      max-height: 20rem;
+      max-height: 60rem;
       opacity: 1;
       margin-bottom: 2.5rem;
     }
@@ -74,10 +74,19 @@
     .synopsis p {
       font-size: clamp(0.78rem, 1.8vw, 0.9rem);
       font-style: italic;
-      line-height: 1.85;
+      line-height: 1.9;
       color: #a09890;
-      max-width: 38ch;
-      margin: 0 auto;
+      max-width: 44ch;
+      margin: 0 auto 1.1em;
+    }
+
+    .synopsis p:last-child {
+      margin-bottom: 0;
+    }
+
+    .synopsis .label {
+      color: #c8c0b4;
+      font-style: normal;
     }
 
     ol {
@@ -113,7 +122,11 @@
   <main>
     <h1 id="title">Rites of the Irreducible</h1>
     <div class="synopsis" id="synopsis">
-      <p>Three movements through the aftermath of a single event that cannot be named directly. The first attempts to index it — the mind's instrument of control applied to what resists control. The second enters the body — words spoken and unretractable, words withheld and perhaps recoverable, all of it cast into water and watched. The third arrives at the question neither movement could answer: whether forgiveness is a process or a grace, and whether mercy can be made or only received.</p>
+      <p>What machines cannot do with the irreducible human interior — guilt, grief, the unsayable, the unrecoverable. Three movements approach the same interior through different registers.</p>
+      <p><span class="label">The Index.</span> Trauma processed as data. The mind applies its instrument of categorization — the index, the entry, the cross-reference — to experience that refuses to be sorted. The structure performs the failure. The more precisely it names, the more clearly it cannot reach.</p>
+      <p><span class="label">The Casting Out.</span> Grief in the body. Words said and unretractable sink; words withheld can be drawn back, slowly, with effort. Language is cast out into water and perhaps reclaimed. The enactment is somatic: not thought about, but done.</p>
+      <p><span class="label">The Seeking Forgiveness.</span> A Machine Gospel world. Human confession held against algorithmic correction — mercy against optimization. The comic names it most explicitly: there are things a system cannot forgive because forgiveness is not optimization. Guilt cannot be patched. The irreducible interior cannot be debugged.</p>
+      <p>The Index performs the limit structurally. The Fisher enacts it in the body. The comic names it outright. The throughline is what no process reaches.</p>
     </div>
     <ol>
       <li><span class="numeral">I.</span><a href="twine.html">The Index</a></li>
