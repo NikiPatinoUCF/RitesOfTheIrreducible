@@ -30,6 +30,48 @@
       padding: 4rem 1.5rem;
     }
 
+    #title-screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #07080c;
+      z-index: 200;
+      cursor: pointer;
+      transition: opacity 1s ease;
+    }
+
+    #title-screen.fade-out {
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .ts-num {
+      font-size: 1rem;
+      font-style: italic;
+      letter-spacing: 0.18em;
+      opacity: 0.45;
+      margin-bottom: 1.2rem;
+    }
+
+    .ts-name {
+      font-size: clamp(1.8rem, 5vw, 3.2rem);
+      font-style: italic;
+      font-weight: normal;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      text-align: center;
+    }
+
+    .ts-hint {
+      margin-top: 3rem;
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      opacity: 0.3;
+    }
+
     #back {
       position: fixed;
       top: 1rem;
@@ -91,6 +133,12 @@
 </head>
 <body>
 
+  <div id="title-screen">
+    <p class="ts-num">I.</p>
+    <h1 class="ts-name">The Seeking Forgiveness</h1>
+    <p class="ts-hint">click to begin</p>
+  </div>
+
   <a href="index.html" id="back">&#8592; Rites of the Irreducible</a>
 
   <div id="grid">
@@ -109,31 +157,34 @@
   </div>
 
   <script>
-    var FADE      = 1200;            // ms — matches CSS transition
-    var HOLD      = 5000;            // ms — pause while panel(s) are fully visible
-    var STEP      = FADE + HOLD;     // 6200 ms between fade-starts
-    var PAUSE_END = 3000;            // ms — hold all 8 before reflow
-
-    // Act 2 fades in reverse: 8 → 7 → 6 → 5
+    var FADE      = 1200;
+    var HOLD      = 5000;
+    var STEP      = FADE + HOLD;
+    var PAUSE_END = 3000;
     var ids = ['p1','p2','p3','p4','p8','p7','p6','p5'];
 
-    ids.forEach(function (id, i) {
-      // Open row 2 just before p8 (i===4) begins fading
-      if (i === 4) {
+    function startSequence() {
+      ids.forEach(function (id, i) {
+        if (i === 4) {
+          setTimeout(function () {
+            document.getElementById('row2').classList.add('open');
+          }, i * STEP - 400);
+        }
         setTimeout(function () {
-          document.getElementById('row2').classList.add('open');
-        }, i * STEP - 400);
-      }
-
+          document.getElementById(id).classList.add('visible');
+        }, i * STEP);
+      });
       setTimeout(function () {
-        document.getElementById(id).classList.add('visible');
-      }, i * STEP);
-    });
+        document.getElementById('grid').classList.add('reflowed');
+      }, 7 * STEP + FADE + PAUSE_END);
+    }
 
-    // Reflow: close the row gap after all panels have appeared and held
-    setTimeout(function () {
-      document.getElementById('grid').classList.add('reflowed');
-    }, 7 * STEP + FADE + PAUSE_END);
+    var ts = document.getElementById('title-screen');
+    ts.addEventListener('click', function () {
+      ts.classList.add('fade-out');
+      setTimeout(function () { ts.remove(); }, 1100);
+      startSequence();
+    });
   </script>
 
 </body>
