@@ -102,8 +102,8 @@
       flex-direction: column;
       align-items: center;
       width: min(calc(100vw - 3rem), 1400px);
-      gap: 2.5rem;
-      transition: gap 1.8s cubic-bezier(0.4, 0, 0.2, 1);
+      gap: 3rem;
+      transition: gap 1.5s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     #grid.v-merged {
@@ -113,8 +113,8 @@
     .row {
       display: flex;
       width: 100%;
-      gap: 0.2rem;
-      transition: gap 1.8s cubic-bezier(0.4, 0, 0.2, 1);
+      gap: 1rem;
+      transition: gap 1.5s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     #grid.h-merged .row {
@@ -199,9 +199,10 @@
         document.getElementById('grid').classList.add('h-merged');
       }, mergeAt);
 
+      // vertical fires after horizontal transition (1500ms) + brief pause (300ms)
       setTimeout(function () {
         document.getElementById('grid').classList.add('v-merged');
-      }, mergeAt + 2200);
+      }, mergeAt + 1800);
     }
 
     var ts = document.getElementById('title-screen');
