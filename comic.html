@@ -106,7 +106,7 @@
       transition: gap 1.5s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    #grid.v-merged {
+    #grid.merged {
       gap: 0;
     }
 
@@ -117,30 +117,19 @@
       transition: gap 1.5s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    #grid.h-merged .row {
+    #grid.merged .row {
       gap: 0;
     }
 
     /* Row 2 hidden until act 2 */
-    #row1 {
-      position: relative;
-      z-index: 2;
-    }
-
     #row2 {
-      position: relative;
-      z-index: 1;
       max-height: 0;
       overflow: hidden;
-      transition: max-height 1.2s ease, transform 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: max-height 1.2s ease;
     }
 
     #row2.open {
       max-height: 1000px;
-    }
-
-    #grid.v-merged #row2 {
-      transform: translateY(calc(-50vh + 3.5rem));
     }
 
     .panel {
@@ -204,16 +193,9 @@
           document.getElementById(id).classList.add('visible');
         }, i * STEP);
       });
-      var mergeAt = 7 * STEP + FADE + PAUSE_END;
-
       setTimeout(function () {
-        document.getElementById('grid').classList.add('h-merged');
-      }, mergeAt);
-
-      // vertical fires after horizontal transition (1500ms) + brief pause (300ms)
-      setTimeout(function () {
-        document.getElementById('grid').classList.add('v-merged');
-      }, mergeAt + 1800);
+        document.getElementById('grid').classList.add('merged');
+      }, 7 * STEP + FADE + PAUSE_END);
     }
 
     var ts = document.getElementById('title-screen');
