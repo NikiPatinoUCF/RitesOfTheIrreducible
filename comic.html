@@ -122,14 +122,25 @@
     }
 
     /* Row 2 hidden until act 2 */
+    #row1 {
+      position: relative;
+      z-index: 2;
+    }
+
     #row2 {
+      position: relative;
+      z-index: 1;
       max-height: 0;
       overflow: hidden;
-      transition: max-height 1.2s ease;
+      transition: max-height 1.2s ease, transform 1.5s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     #row2.open {
       max-height: 1000px;
+    }
+
+    #grid.v-merged #row2 {
+      transform: translateY(calc(-50vh + 3.5rem));
     }
 
     .panel {
