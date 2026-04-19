@@ -106,8 +106,8 @@
       transition: gap 1.8s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    #grid.reflowed {
-      gap: 0.2rem;
+    #grid.v-merged {
+      gap: 0;
     }
 
     .row {
@@ -117,7 +117,7 @@
       transition: gap 1.8s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    #grid.reflowed .row {
+    #grid.h-merged .row {
       gap: 0;
     }
 
@@ -193,9 +193,15 @@
           document.getElementById(id).classList.add('visible');
         }, i * STEP);
       });
+      var mergeAt = 7 * STEP + FADE + PAUSE_END;
+
       setTimeout(function () {
-        document.getElementById('grid').classList.add('reflowed');
-      }, 7 * STEP + FADE + PAUSE_END);
+        document.getElementById('grid').classList.add('h-merged');
+      }, mergeAt);
+
+      setTimeout(function () {
+        document.getElementById('grid').classList.add('v-merged');
+      }, mergeAt + 2200);
     }
 
     var ts = document.getElementById('title-screen');
