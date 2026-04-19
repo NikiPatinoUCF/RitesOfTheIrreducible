@@ -111,25 +111,6 @@
       margin: 0 auto;
     }
 
-    #movement-def {
-      position: fixed;
-      font-size: clamp(0.78rem, 1.6vw, 0.88rem);
-      font-style: italic;
-      color: #8a8278;
-      max-width: 30ch;
-      line-height: 1.75;
-      text-align: center;
-      transform: translateX(-50%);
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 0.35s ease;
-      z-index: 50;
-    }
-
-    #movement-def.visible {
-      opacity: 1;
-    }
-
     ol {
       list-style: none;
       display: flex;
@@ -141,6 +122,27 @@
       font-size: clamp(0.95rem, 2.5vw, 1.15rem);
       font-style: normal;
       letter-spacing: 0.04em;
+    }
+
+    .mov-def {
+      display: block;
+      font-size: clamp(0.75rem, 1.5vw, 0.84rem);
+      font-style: italic;
+      color: #8a8278;
+      max-width: 36ch;
+      margin: 0 auto;
+      line-height: 1.65;
+      max-height: 0;
+      overflow: hidden;
+      opacity: 0;
+      margin-top: 0;
+      transition: max-height 0.45s ease, opacity 0.45s ease, margin-top 0.45s ease;
+    }
+
+    li:hover .mov-def {
+      max-height: 5em;
+      opacity: 1;
+      margin-top: 0.45em;
     }
 
     .numeral {
@@ -167,11 +169,19 @@
       <p class="dict-def">not able to be reduced, simplified, or processed into a smaller form; resisting categorization, optimization, or repair.</p>
     </div>
     <ol>
-      <li><span class="numeral">I.</span><a href="twine.html" id="link-index">The Index</a></li>
-      <li><span class="numeral">II.</span><a href="fisher.html" id="link-casting">The Casting Out</a></li>
-      <li><span class="numeral">III.</span><a href="comic.html" id="link-forgiveness">The Seeking Forgiveness</a></li>
+      <li>
+        <span class="numeral">I.</span><a href="twine.html">The Index</a>
+        <span class="mov-def">The mind categorizing what resists categorization — structure performing its own failure.</span>
+      </li>
+      <li>
+        <span class="numeral">II.</span><a href="fisher.html">The Casting Out</a>
+        <span class="mov-def">Language cast into water, grief enacted rather than processed — the body releasing what it carried.</span>
+      </li>
+      <li>
+        <span class="numeral">III.</span><a href="comic.html">The Seeking Forgiveness</a>
+        <span class="mov-def">Mercy is not optimization. The irreducible interior cannot be debugged.</span>
+      </li>
     </ol>
-    <p id="movement-def"></p>
   </main>
 
   <!-- ═══ Animation — isolated so failures here cannot affect the click handler ═══ -->
@@ -432,29 +442,6 @@
   <script>
     document.getElementById('irreducible-word').addEventListener('click', function () {
       document.getElementById('dict-entry').classList.toggle('open');
-    });
-
-    var movDef = document.getElementById('movement-def');
-    var movDefs = {
-      'link-index':      'The mind categorizing what resists categorization — structure performing its own failure.',
-      'link-casting':    'Language cast into water, grief enacted rather than processed — the body releasing what it carried.',
-      'link-forgiveness':'Mercy is not optimization. The irreducible interior cannot be debugged.'
-    };
-    var hideTimer;
-
-    Object.keys(movDefs).forEach(function (id) {
-      var el = document.getElementById(id);
-      el.addEventListener('mouseenter', function () {
-        clearTimeout(hideTimer);
-        var rect = el.getBoundingClientRect();
-        movDef.style.left = (rect.left + rect.width / 2) + 'px';
-        movDef.style.top  = (rect.bottom + 10) + 'px';
-        movDef.textContent = movDefs[id];
-        movDef.classList.add('visible');
-      });
-      el.addEventListener('mouseleave', function () {
-        hideTimer = setTimeout(function () { movDef.classList.remove('visible'); }, 250);
-      });
     });
   </script>
 </body>
